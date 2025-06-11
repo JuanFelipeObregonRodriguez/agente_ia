@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agente IA Open Source</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #667eea;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 25px;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .sidebar {
+            flex: 0 0 300px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            height: fit-content;
+        }
+
+        .chat-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tools-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .tool-item {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .tool-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-user {
+            text-align: right;
+        }
+
+        .message-ai {
+            text-align: left;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            max-width: 80%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-ai .message-bubble {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-bottom-left-radius: 5px;
+        }
+
+        .tool-execution {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .tool-execution-header {
+            color: #10b981;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .input-container {
+            padding: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-button {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #667eea;
+            padding: 10px 20px;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action {
+            padding: 8px 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .system-info {
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #dc2626;
+        }
+
+        .success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #059669;
+        }
+
+        .warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #d97706;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                flex: none;
+                order: 2;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .status-bar {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Agente JUAN.10 Open Source</h1>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-indicator" id="ollamaStatus"></div>
+                    <span>Ollama: <span id="ollamaText">Verificando...</span></span>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator" id="modelStatus"></div>
+                    <span>Modelo: <span id="modelText">llama3.2</span></span>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator" id="internetStatus"></div>
+                    <span>Internet: <span id="internetText">Verificando...</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="system-info">
+                    <strong>📊 Estado del Sistema</strong>
+                    <div id="systemDetails">Cargando información...</div>
+                </div>
+
+                <div class="tools-section">
+                    <h3>🛠️ Herramientas Disponibles</h3>
+                    <div class="tool-item" onclick="insertCommand('USE_TOOL: web_search(\" \")')">
+                        🔍 Búsqueda Web
+                    </div>
+                    <div class="tool-item" onclick="insertCommand('USE_TOOL: calculator(\" \")')">
+                        🧮 Calculadora
+                    </div>
+                    <div class="tool-item" onclick="insertCommand('USE_TOOL: get_time()');">
+                        ⏰ Fecha y Hora
+                    </div>
+                    <div class="tool-item" onclick="insertCommand('USE_TOOL: system_info()')">
+                        💻 Info Sistema
+                    </div>
+                    <div class="tool-item" onclick="insertCommand('USE_TOOL: weather(\" \")')">
+                        🌤️ Clima
+                    </div>
+                    <div class="tool-item" onclick="insertCommand('USE_TOOL: file_operations(\" list\")')">
+                        📁 Archivos
+                    </div>
+                    <div class="tool-item" onclick="insertCommand('USE_TOOL: python_code(\" \")')">
+                        🐍 Python
+                    </div>
+                </div>
+
+                <div class="tools-section">
+                    <h3>⚡ Acciones Rápidas</h3>
+                    <div class="quick-actions">
+                        <div class="quick-action" onclick="clearChat()">🗑️ Limpiar</div>
+                        <div class="quick-action" onclick="saveChat()">💾 Guardar</div>
+                        <div class="quick-action" onclick="showHelp()">❓ Ayuda</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message message-ai">
+                        <div class="message-bubble">
+                            ¡Hola! Soy tu Agente IA Open Source. Puedo ayudarte con búsquedas web, cálculos, archivos,
+                            código Python y más. ¿En qué puedo ayudarte hoy?
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-container">
+                    <div class="input-row">
+                        <input type="text" class="message-input" id="messageInput"
+                            placeholder="Escribe tu mensaje aquí..." onkeypress="handleKeyPress(event)">
+                        <button class="send-button" id="sendButton" onclick="sendMessage()">
+                            Enviar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado global
+        let isProcessing = false;
+        let conversationHistory = [];
+        let systemStatus = {
+            ollama: false,
+            model: false,
+            internet: false
+        };
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function () {
+            checkSystemStatus();
+            updateSystemInfo();
+        });
+
+        // Verificar estado del sistema
+        async function checkSystemStatus() {
+            // Simular verificación de Ollama
+            setTimeout(() => {
+                updateStatus('ollama', true, 'Conectado');
+                updateStatus('model', true, 'llama3.2 Disponible');
+            }, 1000);
+
+            // Verificar conexión a internet
+            try {
+                await fetch('https://httpbin.org/get', { mode: 'no-cors' });
+                updateStatus('internet', true, 'Conectado');
+            } catch (error) {
+                updateStatus('internet', false, 'Sin conexión');
+            }
+        }
+
+        function updateStatus(type, status, text) {
+            const indicator = document.getElementById(`${type}Status`);
+            const textElement = document.getElementById(`${type}Text`);
+
+            indicator.style.background = status ? '#10b981' : '#ef4444';
+            textElement.textContent = text;
+            systemStatus[type] = status;
+        }
+
+        function updateSystemInfo() {
+            const systemDetails = document.getElementById('systemDetails');
+            const now = new Date();
+
+            systemDetails.innerHTML = `
+                <div style="margin-top: 10px; font-size: 0.85em;">
+                    <div>📅 ${now.toLocaleDateString()}</div>
+                    <div>🕐 ${now.toLocaleTimeString()}</div>
+                    <div>🌐 ${navigator.userAgent.includes('Chrome') ? 'Chrome' : 'Navegador'}</div>
+                    <div>💬 ${conversationHistory.length} mensajes</div>
+                </div>
+            `;
+        }
+
+        // Manejo de mensajes
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message || isProcessing) return;
+
+            // Agregar mensaje del usuario
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Mostrar indicador de carga
+            showLoading();
+            isProcessing = true;
+            document.getElementById('sendButton').disabled = true;
+
+            try {
+                // Simular procesamiento del agente
+                const response = await processMessage(message);
+
+                // Quitar indicador de carga
+                hideLoading();
+
+                // Agregar respuesta del agente
+                addMessage(response.text, 'ai');
+
+                // Mostrar ejecución de herramientas si existe
+                if (response.toolExecutions && response.toolExecutions.length > 0) {
+                    showToolExecutions(response.toolExecutions);
+                }
+
+            } catch (error) {
+                hideLoading();
+                addMessage(`Error: ${error.message}`, 'ai', 'error');
+            } finally {
+                isProcessing = false;
+                document.getElementById('sendButton').disabled = false;
+                updateSystemInfo();
+            }
+        }
+
+        async function processMessage(message) {
+            // Simular llamada al backend/Ollama
+            await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+
+            const toolExecutions = [];
+            let responseText = '';
+
+            // Detectar comandos de herramientas
+            if (message.includes('USE_TOOL:')) {
+                const toolMatch = message.match(/USE_TOOL:\s*(\w+)\((.*?)\)/);
+                if (toolMatch) {
+                    const [, toolName, args] = toolMatch;
+                    const toolResult = await executeSimulatedTool(toolName, args);
+                    toolExecutions.push(toolResult);
+                }
+            }
+
+            // Generar respuesta contextual
+            if (message.toLowerCase().includes('hola') || message.toLowerCase().includes('hello')) {
+                responseText = '¡Hola! ¿Cómo puedo ayudarte hoy? Tengo varias herramientas disponibles para asistirte.';
+            } else if (message.toLowerCase().includes('ayuda') || message.toLowerCase().includes('help')) {
+                responseText = `Puedo ayudarte con:
+                
+🔍 Búsquedas web - USE_TOOL: web_search("tu consulta")
+🧮 Cálculos - USE_TOOL: calculator("2+2*3")
+⏰ Fecha/hora - USE_TOOL: get_time()
+💻 Info sistema - USE_TOOL: system_info()
+🌤️ Clima - USE_TOOL: weather("tu ciudad")
+📁 Archivos - USE_TOOL: file_operations("list")
+🐍 Python - USE_TOOL: python_code("print('Hola')")
+
+¡Prueba cualquiera de estos comandos!`;
+            } else if (message.toLowerCase().includes('clima') || message.toLowerCase().includes('weather')) {
+                responseText = 'Te ayudo con el clima. ¿De qué ciudad quieres saber el clima?';
+                const toolResult = await executeSimulatedTool('weather', 'Manizales');
+                toolExecutions.push(toolResult);
+            } else if (message.toLowerCase().includes('calcul') || /\d+[\+\-\*\/]\d+/.test(message)) {
+                const mathMatch = message.match(/(\d+[\+\-\*\/\d\s\(\)\.]+)/);
+                if (mathMatch) {
+                    const toolResult = await executeSimulatedTool('calculator', mathMatch[1]);
+                    toolExecutions.push(toolResult);
+                    responseText = 'He realizado el cálculo que solicitaste:';
+                } else {
+                    responseText = 'Veo que quieres hacer un cálculo. Usa el formato: USE_TOOL: calculator("tu operación")';
+                }
+            } else if (message.toLowerCase().includes('hora') || message.toLowerCase().includes('fecha')) {
+                const toolResult = await executeSimulatedTool('get_time', '');
+                toolExecutions.push(toolResult);
+                responseText = 'Aquí tienes la información de fecha y hora actual:';
+            } else {
+                responseText = `Entiendo tu consulta: "${message}". ¿Quieres que use alguna herramienta específica para ayudarte mejor? Puedes usar comandos como USE_TOOL: web_search("tu búsqueda") para obtener información actualizada.`;
+            }
+
+            return {
+                text: responseText,
+                toolExecutions: toolExecutions
+            };
+        }
+
+        async function executeSimulatedTool(toolName, args) {
+            // Simular ejecución de herramientas
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            switch (toolName) {
+                case 'web_search':
+                    return {
+                        tool: 'web_search',
+                        args: args,
+                        result: `Resultados de búsqueda para "${args}":\n\n1. Artículo relevante sobre ${args}\n2. Información actualizada de ${args}\n3. Recursos adicionales sobre ${args}`
+                    };
+
+                case 'calculator':
+                    try {
+                        // Evaluación segura simulada
+                        const result = eval(args.replace(/[^0-9+\-*/.() ]/g, ''));
+                        return {
+                            tool: 'calculator',
+                            args: args,
+                            result: `Resultado: ${result}`
+                        };
+                    } catch (error) {
+                        return {
+                            tool: 'calculator',
+                            args: args,
+                            result: 'Error: Operación no válida'
+                        };
+                    }
+
+                case 'get_time':
+                    const now = new Date();
+                    return {
+                        tool: 'get_time',
+                        args: '',
+                        result: `Información de tiempo:
+Fecha y hora: ${now.toLocaleString()}
+Día de la semana: ${now.toLocaleDateString('es', { weekday: 'long' })}
+Timestamp Unix: ${Math.floor(now.getTime() / 1000)}`
+                    };
+
+                case 'weather':
+                    const city = args || 'Manizales';
+                    return {
+                        tool: 'weather',
+                        args: city,
+                        result: `Clima en ${city}:
+Temperatura: 22°C (72°F)
+Condición: Parcialmente nublado
+Humedad: 75%
+Viento: 15 km/h`
+                    };
+
+                case 'system_info':
+                    return {
+                        tool: 'system_info',
+                        args: '',
+                        result: `Información del sistema:
+OS: ${navigator.platform}
+Navegador: ${navigator.userAgent.split(' ')[0]}
+Idioma: ${navigator.language}
+Conexión: ${navigator.onLine ? 'Online' : 'Offline'}`
+                    };
+
+                case 'file_operations':
+                    return {
+                        tool: 'file_operations',
+                        args: args,
+                        result: `Archivos en agente_workspace/:
+documento.txt (1.2 KB)
+notas.md (845 bytes)
+codigo.py (2.1 KB)`
+                    };
+
+                case 'python_code':
+                    return {
+                        tool: 'python_code',
+                        args: args,
+                        result: `Código ejecutado correctamente:
+${args}
+
+Output: Código ejecutado sin errores`
+                    };
+
+                default:
+                    return {
+                        tool: toolName,
+                        args: args,
+                        result: 'Herramienta no encontrada'
+                    };
+            }
+        }
+
+        function addMessage(text, sender, type = '') {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${sender}`;
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = `message-bubble ${type}`;
+            bubbleDiv.textContent = text;
+
+            messageDiv.appendChild(bubbleDiv);
+            messagesContainer.appendChild(messageDiv);
+
+            // Scroll automático
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Guardar en historial
+            conversationHistory.push({
+                text: text,
+                sender: sender,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function showToolExecutions(executions) {
+            const messagesContainer = document.getElementById('chatMessages');
+
+            executions.forEach(execution => {
+                const toolDiv = document.createElement('div');
+                toolDiv.className = 'tool-execution';
+
+                toolDiv.innerHTML = `
+                    <div class="tool-execution-header">
+                        🔧 ${execution.tool}(${execution.args})
+                    </div>
+                    <div>${execution.result}</div>
+                `;
+
+                messagesContainer.appendChild(toolDiv);
+            });
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoading() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loadingIndicator';
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = `
+                <div class="loading-spinner"></div>
+                <span>El agente está procesando...</span>
+            `;
+            messagesContainer.appendChild(loadingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+        }
+
+        // Funciones auxiliares
+        function insertCommand(command) {
+            const input = document.getElementById('messageInput');
+            input.value = command;
+            input.focus();
+
+            // Posicionar cursor entre las comillas si las hay
+            if (command.includes('""')) {
+                const position = command.indexOf('""') + 1;
+                input.setSelectionRange(position, position);
+            }
+        }
+
+        function clearChat() {
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.innerHTML = `
+                <div class="message message-ai">
+                    <div class="message-bubble">
+                        Chat limpiado. ¿En qué puedo ayudarte?
+                    </div>
+                </div>
+            `;
+            conversationHistory = [];
+            updateSystemInfo();
+        }
+
+        function saveChat() {
+            const dataStr = JSON.stringify(conversationHistory, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `conversacion_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            addMessage('Conversación guardada exitosamente', 'ai', 'success');
+        }
+
+        function showHelp() {
+            const helpMessage = `🤖 Ayuda del Agente IA
+
+COMANDOS DISPONIBLES:
+• USE_TOOL: web_search("consulta") - Buscar en internet
+• USE_TOOL: calculator("operación") - Realizar cálculos
+• USE_TOOL: get_time() - Obtener fecha y hora
+• USE_TOOL: system_info() - Información del sistema
+• USE_TOOL: weather("ciudad") - Clima de una ciudad
+• USE_TOOL: file_operations("operación") - Manejar archivos
+• USE_TOOL: python_code("código") - Ejecutar Python
+
+EJEMPLOS:
+• "¿Qué hora es?"
+• "Calcula 15 * 23 + 47"
+• "Busca información sobre inteligencia artificial"
+• "¿Cómo está el clima en Bogotá?"
+
+¡Haz clic en las herramientas de la barra lateral para insertar comandos automáticamente!`;
+
+            addMessage(helpMessage, 'ai');
+        }
+
+        // Actualizar info del sistema cada minuto
+        setInterval(updateSystemInfo, 60000);
+    </script>
+</body>
+
+</html>
