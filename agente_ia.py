@@ -1,4 +1,4 @@
-# Agente de IA Open Source - Versión de Producción
+# Agente de IA Open Source - Versión Optimizada
 # Autor: Tu nombre
 # Fecha: 2025
 # Requiere: pip install requests beautifulsoup4 duckduckgo-search rich
@@ -29,7 +29,7 @@ except ImportError:
 class OpenSourceAgent:
     def __init__(self, model_name="llama3.2", verbose=True):
         """
-        Agente de IA completamente open source - Versión de Producción
+        Agente de IA completamente open source - Versión Optimizada
         
         Args:
             model_name: Modelo de Ollama a usar
@@ -45,7 +45,7 @@ class OpenSourceAgent:
             "python_code": self.execute_python,
             "get_time": self.get_time,
             "system_info": self.get_system_info,
-            "weather": self.get_weather  # Bonus: clima usando API gratuita
+            "weather": self.get_weather
         }
         
         # Configuración de directorios
@@ -179,24 +179,34 @@ class OpenSourceAgent:
         return "Error: No se pudo obtener respuesta después de varios intentos"
     
     def web_search(self, query, max_results=5):
-        """Búsqueda web usando DuckDuckGo"""
+        """Búsqueda web optimizada usando DuckDuckGo - Devuelve información directa"""
         try:
             with DDGS() as ddgs:
                 results = []
                 for r in ddgs.text(query, max_results=max_results):
                     results.append({
                         'title': r['title'],
-                        'body': r['body'][:300] + '...' if len(r['body']) > 300 else r['body'],
+                        'body': r['body'][:400] + '...' if len(r['body']) > 400 else r['body'],
                         'url': r['href']
                     })
                 
                 if results:
-                    return f"Encontrados {len(results)} resultados:\n" + json.dumps(results, indent=2, ensure_ascii=False)
+                    # Formatear resultados de manera más legible
+                    formatted_results = f"🔍 BÚSQUEDA: {query}\n" + "="*50 + "\n"
+                    
+                    for i, result in enumerate(results, 1):
+                        formatted_results += f"\n📄 RESULTADO {i}:\n"
+                        formatted_results += f"🔗 Título: {result['title']}\n"
+                        formatted_results += f"📝 Contenido: {result['body']}\n"
+                        formatted_results += f"🌐 URL: {result['url']}\n"
+                        formatted_results += "-" * 30 + "\n"
+                    
+                    return formatted_results
                 else:
-                    return "No se encontraron resultados para la búsqueda"
+                    return f"❌ No se encontraron resultados para: {query}"
                     
         except Exception as e:
-            return f"Error en búsqueda web: {str(e)}"
+            return f"❌ Error en búsqueda web: {str(e)}"
     
     def calculator(self, expression):
         """Calculadora avanzada con más funciones"""
@@ -212,12 +222,12 @@ class OpenSourceAgent:
             
             # Evaluación segura
             result = eval(expression, {"__builtins__": {}}, {})
-            return f"Resultado: {result}"
+            return f"🧮 CÁLCULO: {expression.replace('**', '^')}\n✅ Resultado: {result}"
             
         except ZeroDivisionError:
-            return "Error: División por cero"
+            return "❌ Error: División por cero"
         except Exception as e:
-            return f"Error en cálculo: {str(e)}"
+            return f"❌ Error en cálculo: {str(e)}"
     
     def file_operations(self, operation, filename=None, content=None):
         """Operaciones de archivos mejoradas"""
@@ -230,29 +240,29 @@ class OpenSourceAgent:
                 for f in files[:20]:  # Limitar a 20 archivos
                     if f.is_file():
                         size = f.stat().st_size
-                        file_info.append(f"{f.name} ({size} bytes)")
-                return f"Archivos en {self.work_dir}:\n" + "\n".join(file_info)
+                        file_info.append(f"📄 {f.name} ({size} bytes)")
+                return f"📁 ARCHIVOS EN {self.work_dir}:\n" + "\n".join(file_info)
             
             elif operation == "read" and filename:
-                if work_path.exists() and work_path.suffix in ['.txt', '.md', '.py', '.json']:
+                if work_path.exists() and work_path.suffix in ['.txt', '.md', '.py', '.json', '.csv']:
                     content = work_path.read_text(encoding='utf-8')[:2000]  # Limitar contenido
-                    return f"Contenido de {filename}:\n{content}"
-                return "Archivo no encontrado o tipo no permitido"
+                    return f"📖 CONTENIDO DE {filename}:\n" + "="*30 + f"\n{content}"
+                return f"❌ Archivo {filename} no encontrado o tipo no permitido"
             
             elif operation == "write" and filename and content:
                 work_path.write_text(content, encoding='utf-8')
-                return f"Archivo {filename} creado exitosamente en {work_path}"
+                return f"✅ Archivo {filename} creado exitosamente en {work_path}"
             
             elif operation == "delete" and filename:
                 if work_path.exists():
                     work_path.unlink()
-                    return f"Archivo {filename} eliminado"
-                return "Archivo no encontrado"
+                    return f"🗑️ Archivo {filename} eliminado exitosamente"
+                return f"❌ Archivo {filename} no encontrado"
             
-            return "Operación no válida. Usa: list, read, write, delete"
+            return "❌ Operación no válida. Usa: list, read, write, delete"
             
         except Exception as e:
-            return f"Error en operación de archivo: {str(e)}"
+            return f"❌ Error en operación de archivo: {str(e)}"
     
     def execute_python(self, code):
         """Ejecuta código Python con mayor seguridad"""
@@ -263,7 +273,7 @@ class OpenSourceAgent:
         ]
         
         if any(keyword in code for keyword in dangerous_keywords):
-            return "Error: Código no permitido por seguridad"
+            return "❌ Error: Código no permitido por seguridad"
         
         try:
             # Crear namespace limitado
@@ -279,7 +289,13 @@ class OpenSourceAgent:
                     'min': min,
                     'sorted': sorted,
                     'abs': abs,
-                    'round': round
+                    'round': round,
+                    'int': int,
+                    'float': float,
+                    'str': str,
+                    'list': list,
+                    'dict': dict,
+                    'tuple': tuple
                 }
             }
             
@@ -292,37 +308,43 @@ class OpenSourceAgent:
                 exec(code, safe_globals)
             
             result = output.getvalue()
-            return f"Código ejecutado correctamente:\n{result}" if result else "Código ejecutado correctamente (sin output)"
+            return f"🐍 CÓDIGO PYTHON EJECUTADO:\n" + "="*30 + f"\n{code}\n" + "="*30 + f"\n📋 RESULTADO:\n{result}" if result else f"✅ Código ejecutado correctamente (sin output visible)"
             
         except Exception as e:
-            return f"Error al ejecutar código: {str(e)}"
+            return f"❌ Error al ejecutar código Python: {str(e)}"
     
     def get_time(self):
         """Obtiene información de tiempo completa"""
         now = datetime.now()
-        return f"""Información de tiempo:
-Fecha y hora: {now.strftime("%Y-%m-%d %H:%M:%S")}
-Día de la semana: {now.strftime("%A")}
-Semana del año: {now.isocalendar()[1]}
-Timestamp Unix: {int(now.timestamp())}"""
+        return f"""🕐 INFORMACIÓN DE TIEMPO:
+📅 Fecha y hora: {now.strftime("%Y-%m-%d %H:%M:%S")}
+📆 Día de la semana: {now.strftime("%A")}
+📊 Semana del año: {now.isocalendar()[1]}
+⏱️ Timestamp Unix: {int(now.timestamp())}"""
     
     def get_system_info(self):
         """Obtiene información del sistema"""
         try:
             import platform
-            import psutil
             
-            info = f"""Información del sistema:
-OS: {platform.system()} {platform.release()}
-Arquitectura: {platform.architecture()[0]}
-Procesador: {platform.processor()}
-Python: {platform.python_version()}
-CPU: {psutil.cpu_count()} cores
-RAM: {psutil.virtual_memory().total // (1024**3)} GB total"""
+            info = f"""💻 INFORMACIÓN DEL SISTEMA:
+🖥️ OS: {platform.system()} {platform.release()}
+🏗️ Arquitectura: {platform.architecture()[0]}
+⚙️ Procesador: {platform.processor()}
+🐍 Python: {platform.python_version()}"""
+            
+            try:
+                import psutil
+                info += f"""
+🔧 CPU: {psutil.cpu_count()} cores
+💾 RAM: {psutil.virtual_memory().total // (1024**3)} GB total
+📊 Uso RAM: {psutil.virtual_memory().percent}%"""
+            except ImportError:
+                info += "\n💡 Instala 'psutil' para más detalles del sistema"
             
             return info
-        except ImportError:
-            return "Información básica del sistema (instala 'psutil' para más detalles)"
+        except Exception as e:
+            return f"❌ Error obteniendo información del sistema: {str(e)}"
     
     def get_weather(self, city=""):
         """Obtiene información del clima (usando API gratuita)"""
@@ -337,105 +359,144 @@ RAM: {psutil.virtual_memory().total // (1024**3)} GB total"""
             if response.status_code == 200:
                 data = response.json()
                 current = data['current_condition'][0]
+                location = data.get('nearest_area', [{}])[0]
                 
-                weather_info = f"""Clima en {city}:
-Temperatura: {current['temp_C']}°C ({current['temp_F']}°F)
-Condición: {current['weatherDesc'][0]['value']}
-Humedad: {current['humidity']}%
-Viento: {current['windspeedKmph']} km/h"""
+                weather_info = f"""🌤️ CLIMA EN {city.upper()}:
+📍 Ubicación: {location.get('areaName', [{}])[0].get('value', 'Desconocida')}
+🌡️ Temperatura: {current['temp_C']}°C ({current['temp_F']}°F)
+☁️ Condición: {current['weatherDesc'][0]['value']}
+💧 Humedad: {current['humidity']}%
+💨 Viento: {current['windspeedKmph']} km/h
+👁️ Visibilidad: {current['visibility']} km"""
                 
                 return weather_info
             else:
-                return "No se pudo obtener información del clima"
+                return f"❌ No se pudo obtener información del clima para: {city}"
                 
         except Exception as e:
-            return f"Error al obtener clima: {str(e)}"
+            return f"❌ Error al obtener clima: {str(e)}"
     
     def parse_tool_call(self, response):
-        """Extrae llamadas a herramientas mejoradas"""
+        """Extrae llamadas a herramientas de manera más robusta"""
         patterns = [
             r'USE_TOOL:\s*(\w+)\((.*?)\)',
             r'TOOL:\s*(\w+)\((.*?)\)',
-            r'CALL:\s*(\w+)\((.*?)\)'
+            r'CALL:\s*(\w+)\((.*?)\)',
+            r'USAR:\s*(\w+)\((.*?)\)'
         ]
         
         matches = []
         for pattern in patterns:
-            matches.extend(re.findall(pattern, response, re.IGNORECASE))
+            matches.extend(re.findall(pattern, response, re.IGNORECASE | re.DOTALL))
         
         return matches
     
     def create_enhanced_system_prompt(self):
-        """Crea un system prompt más avanzado"""
-        return f"""Eres un asistente de IA avanzado que puede usar herramientas especializadas.
+        """Crea un system prompt optimizado para respuestas directas"""
+        return f"""Eres un asistente de IA avanzado que proporciona respuestas directas y completas usando herramientas especializadas.
 
 HERRAMIENTAS DISPONIBLES:
 • web_search(query): Buscar información actualizada en internet
-• calculator(expression): Realizar cálculos matemáticos complejos  
-• file_operations(operation, filename, content): Manejar archivos (list/read/write/delete)
-• python_code(code): Ejecutar código Python seguro
-• get_time(): Obtener fecha, hora y información temporal
-• system_info(): Información del sistema operativo
-• weather(city): Obtener información del clima
+• calculator(expression): Realizar cálculos matemáticos
+• file_operations(operation, filename, content): Manejar archivos
+• python_code(code): Ejecutar código Python
+• get_time(): Obtener información de tiempo
+• system_info(): Información del sistema
+• weather(city): Información del clima
 
 FORMATO PARA USAR HERRAMIENTAS:
 USE_TOOL: nombre_herramienta(argumentos)
 
+REGLAS IMPORTANTES:
+1. Proporciona respuestas DIRECTAS e INFORMATIVAS
+2. NO hagas preguntas innecesarias al usuario
+3. Usa las herramientas automáticamente cuando sean necesarias
+4. Presenta la información de forma clara y organizada
+5. Incluye detalles relevantes sin ser redundante
+
 EJEMPLOS:
-- USE_TOOL: web_search("inteligencia artificial 2025")
-- USE_TOOL: calculator("15 * 23 + 47")
-- USE_TOOL: file_operations("write", "notas.txt", "Contenido del archivo")
+- Para "busca información sobre IA": USE_TOOL: web_search("inteligencia artificial 2025")
+- Para "¿cuánto es 15 * 23?": USE_TOOL: calculator("15 * 23")
+- Para "¿qué hora es?": USE_TOOL: get_time()
 
-INSTRUCCIONES:
-1. Analiza la consulta del usuario cuidadosamente
-2. Determina qué herramientas necesitas usar
-3. Usa las herramientas apropiadas
-4. Proporciona una respuesta completa e informativa
-5. Se conciso pero detallado
+Fecha actual: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
-Fecha actual: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}"""
+RESPONDE SIEMPRE DE FORMA DIRECTA Y COMPLETA."""
     
     def process_query(self, user_query):
-        """Procesa una consulta con IA mejorada"""
+        """Procesa una consulta de manera optimizada para respuestas directas"""
         try:
-            # System prompt mejorado
-            system_prompt = self.create_enhanced_system_prompt()
+            # DETECCIÓN DIRECTA DE COMANDOS DE HERRAMIENTAS
+            if user_query.strip().startswith("USE_TOOL:"):
+                return self.execute_direct_tool_command(user_query)
             
-            # Llamar al modelo
+            # Detectar si necesita herramientas automáticamente
+            needs_search = any(keyword in user_query.lower() for keyword in [
+                'busca', 'buscar', 'información', 'noticias', 'actualiza', 'último',
+                'search', 'find', 'what is', 'qué es', 'cómo está', 'últimas noticias',
+                'que es', 'define', 'definición'
+            ])
+            
+            needs_calc = any(keyword in user_query.lower() for keyword in [
+                'calcula', 'calculate', 'cuánto es', 'how much', 'suma', 'resta', 
+                'multiplica', 'divide', '+', '-', '*', '/', '=', 'math'
+            ])
+            
+            needs_time = any(keyword in user_query.lower() for keyword in [
+                'hora', 'time', 'fecha', 'date', 'qué hora', 'what time'
+            ])
+            
+            needs_weather = any(keyword in user_query.lower() for keyword in [
+                'clima', 'weather', 'temperatura', 'lluvia', 'sol'
+            ])
+            
+            # EJECUCIÓN DIRECTA DE HERRAMIENTAS CUANDO ES OBVIO
+            if needs_search:
+                # Extraer términos de búsqueda
+                search_terms = self.extract_search_terms(user_query)
+                if search_terms:
+                    search_result = self.web_search(search_terms)
+                    return f"🔍 BÚSQUEDA EJECUTADA DIRECTAMENTE:\n\n{search_result}\n\n💡 Información encontrada sobre: {search_terms}"
+            
+            elif needs_calc:
+                # Buscar expresión matemática
+                calc_expr = self.extract_math_expression(user_query)
+                if calc_expr:
+                    calc_result = self.calculator(calc_expr)
+                    return calc_result
+            
+            elif needs_time:
+                return self.get_time()
+            
+            elif needs_weather:
+                city = self.extract_city_from_query(user_query)
+                return self.get_weather(city)
+            
+            # Si no es una consulta obvia de herramientas, usar el modelo normal
+            system_prompt = self.create_enhanced_system_prompt()
             response = self.call_ollama(user_query, system_prompt)
             
             if "Error:" in response:
                 return response
             
-            # Buscar y ejecutar herramientas
+            # Buscar y ejecutar herramientas en la respuesta del modelo
             tool_calls = self.parse_tool_call(response)
             final_response = response
             
             if tool_calls:
-                final_response += "\n\n" + "="*50 + "\n🔧 EJECUCIÓN DE HERRAMIENTAS:\n" + "="*50
+                final_response += "\n\n" + "="*50 + "\n🔧 HERRAMIENTAS EJECUTADAS:\n" + "="*50
                 
                 for tool_name, args in tool_calls:
                     if tool_name in self.tools:
                         try:
                             self.print_message(f"Ejecutando: {tool_name}({args})", "info")
-                            
-                            # Preparar argumentos
-                            if args.strip():
-                                # Manejar argumentos múltiples
-                                if ',' in args and tool_name == 'file_operations':
-                                    arg_parts = [arg.strip().strip('"\'') for arg in args.split(',')]
-                                    tool_result = self.tools[tool_name](*arg_parts)
-                                else:
-                                    tool_result = self.tools[tool_name](args.strip('"\''))
-                            else:
-                                tool_result = self.tools[tool_name]()
-                            
-                            final_response += f"\n\n🔧 {tool_name}:\n{tool_result}"
+                            tool_result = self.execute_tool_safely(tool_name, args)
+                            final_response += f"\n\n{tool_result}"
                             
                         except Exception as e:
-                            error_msg = f"Error ejecutando {tool_name}: {str(e)}"
+                            error_msg = f"❌ Error ejecutando {tool_name}: {str(e)}"
                             self.print_message(error_msg, "error")
-                            final_response += f"\n\n❌ {error_msg}"
+                            final_response += f"\n\n{error_msg}"
             
             # Guardar en historial
             self.conversation_history.append({
@@ -448,7 +509,7 @@ Fecha actual: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}"""
             return final_response
             
         except Exception as e:
-            error_msg = f"Error procesando consulta: {str(e)}"
+            error_msg = f"❌ Error procesando consulta: {str(e)}"
             if self.verbose:
                 traceback.print_exc()
             return error_msg
@@ -470,21 +531,22 @@ Fecha actual: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}"""
             return None
     
     def chat_loop(self):
-        """Loop de conversación interactiva mejorado"""
+        """Loop de conversación interactiva optimizado"""
         # Mensaje de bienvenida
         if RICH_AVAILABLE and console:
             welcome_panel = Panel.fit(
-                """🤖 Agente IA Open Source v2.0
+                """🤖 Agente IA Open Source v2.1 - OPTIMIZADO
 💡 Herramientas: web_search, calculator, file_ops, python_code, weather, system_info
 📁 Directorio de trabajo: agente_workspace/
+🚀 Respuestas directas sin preguntas innecesarias
 ❌ Comandos: 'quit', 'save', 'help', 'clear'""",
-                title="[bold blue]Bienvenido[/bold blue]",
+                title="[bold blue]Agente IA Optimizado[/bold blue]",
                 border_style="blue"
             )
             console.print(welcome_panel)
         else:
-            print("🤖 Agente IA Open Source v2.0 iniciado!")
-            print("💡 Herramientas disponibles: web_search, calculator, file_ops, python_code, weather")
+            print("🤖 Agente IA Open Source v2.1 - OPTIMIZADO")
+            print("💡 Respuestas directas con herramientas automáticas")
             print("📁 Directorio de trabajo: agente_workspace/")
             print("❌ Comandos: 'quit', 'save', 'help', 'clear'\n")
         
@@ -510,18 +572,21 @@ Fecha actual: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}"""
                 
                 elif user_input.lower() == 'help':
                     help_text = """
-Comandos disponibles:
+🔧 COMANDOS DISPONIBLES:
 • quit/exit - Salir del agente
-• save - Guardar conversación
+• save - Guardar conversación  
 • clear - Limpiar pantalla
 • help - Mostrar esta ayuda
 
-Ejemplos de consultas:
-• "Busca información sobre machine learning"
+💡 EJEMPLOS DE CONSULTAS (RESPUESTAS DIRECTAS):
+• "Busca información sobre machine learning 2025"
 • "Calcula la raíz cuadrada de 144"
-• "¿Qué hora es?"
-• "Crea un archivo con código Python"
+• "¿Qué hora es ahora?"
 • "¿Cómo está el clima?"
+• "Información del sistema"
+• "Crea un archivo Python con un programa simple"
+
+🚀 EL AGENTE PROPORCIONA RESPUESTAS DIRECTAS SIN PREGUNTAS ADICIONALES
                     """
                     self.print_message(help_text, "info")
                     continue
@@ -536,8 +601,8 @@ Ejemplos de consultas:
                 # Mostrar respuesta
                 if RICH_AVAILABLE and console:
                     console.print("\n🤖 Agente:", style="bold blue")
-                    if response.count('\n') > 5:  # Respuesta larga
-                        console.print(Panel(response, border_style="blue"))
+                    if response.count('\n') > 10:  # Respuesta muy larga
+                        console.print(Panel(response, border_style="blue", title="Respuesta Completa"))
                     else:
                         console.print(response)
                 else:
@@ -558,7 +623,7 @@ def main():
     """Función principal con manejo de argumentos"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Agente IA Open Source")
+    parser = argparse.ArgumentParser(description="Agente IA Open Source Optimizado")
     parser.add_argument("--model", default="llama3.2", help="Modelo de Ollama a usar")
     parser.add_argument("--verbose", action="store_true", help="Modo verbose")
     parser.add_argument("--query", help="Ejecutar una consulta única")
